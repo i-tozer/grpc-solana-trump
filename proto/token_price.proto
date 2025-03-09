@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package solana.token;
+
+option go_package = "github.com/i-tozer/grpc-solana-trump/proto";
+
+// TokenPriceService provides methods to fetch token price data from DEXes
+service TokenPriceService {
+  // GetTokenPrice gets the current price of a token
+  rpc GetTokenPrice(TokenPriceRequest) returns (TokenPriceResponse);
+  
+  // GetTokenPriceHistory gets historical price data for a token
+  rpc GetTokenPriceHistory(TokenPriceHistoryRequest) returns (TokenPriceHistoryResponse);
+  
+  // StreamTokenPrice streams real-time price updates for a token
+  rpc StreamTokenPrice(TokenPriceStreamRequest) returns (stream TokenPriceUpdate);
+}
+
+// TokenPriceRequest represents a request for current token price
+message TokenPriceRequest {
+  string token_mint = 1;       // Token mint address
+  string quote_mint = 2;       // Quote token mint address (e.g., USDC)
+  string dex = 3;              // DEX name (e.g., "raydium", "orca", "jupiter")
+}
+
+// TokenPriceResponse represents the response with current token price
+message TokenPriceResponse {
+  string token_mint = 1;       // Token mint address
+  string token_name = 2;       // Token name
+  string token_symbol = 3;     // Token symbol
+  string quote_mint = 4;       // Quote token mint address
+  string quote_symbol = 5;     // Quote token symbol
+  double price = 6;            // Current price in quote token
+  double volume_24h = 7;       // 24-hour volume
+  double price_change_24h = 8; // 24-hour price change percentage
+  uint64 timestamp = 9;        // Timestamp of the price data
+  string dex = 10;             // DEX name
+}
+
+// TokenPriceHistoryRequest represents a request for historical token price data
+message TokenPriceHistoryRequest {
+  string token_mint = 1;       // Token mint address
+  string quote_mint = 2;       // Quote token mint address (e.g., USDC)
+  string dex = 3;              // DEX name
+  string interval = 4;         // Time interval (e.g., "1m", "5m", "15m", "1h", "4h", "1d")
+  uint64 start_time = 5;       // Start timestamp (Unix timestamp in seconds)
+  uint64 end_time = 6;         // End timestamp (Unix timestamp in seconds)
+  uint32 limit = 7;            // Maximum number of data points to return
+}
+
+// TokenPriceHistoryResponse represents the response with historical token price data
+message TokenPriceHistoryResponse {
+  string token_mint = 1;       // Token mint address
+  string token_name = 2;       // Token name
+  string token_symbol = 3;     // Token symbol
+  string quote_mint = 4;       // Quote token mint address
+  string quote_symbol = 5;     // Quote token symbol
+  string interval = 6;         // Time interval
+  repeated PriceDataPoint data_points = 7; // Historical price data points
+  string dex = 8;              // DEX name
+}
+
+// PriceDataPoint represents a single price data point
+message PriceDataPoint {
+  uint64 timestamp = 1;        // Timestamp (Unix timestamp in seconds)
+  double open = 2;             // Opening price
+  double high = 3;             // Highest price
+  double low = 4;              // Lowest price
+  double close = 5;            // Closing price
+  double volume = 6;           // Volume
+}
+
+// TokenPriceStreamRequest represents a request to stream token price updates
+message TokenPriceStreamRequest {
+  string token_mint = 1;       // Token mint address
+  string quote_mint = 2;       // Quote token mint address (e.g., USDC)
+  string dex = 3;              // DEX name
+  uint32 update_interval_ms = 4; // Update interval in milliseconds (0 for real-time)
+}
+
+// TokenPriceUpdate represents a real-time token price update
+message TokenPriceUpdate {
+  string token_mint = 1;       // Token mint address
+  string token_symbol = 2;     // Token symbol
+  string quote_symbol = 3;     // Quote token symbol
+  double price = 4;            // Current price in quote token
+  double volume_24h = 5;       // 24-hour volume
+  double price_change_24h = 6; // 24-hour price change percentage
+  uint64 timestamp = 7;        // Timestamp of the update
+  string dex = 8;              // DEX name
+}
