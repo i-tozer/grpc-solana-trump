@@ -1,0 +1,153 @@
+syntax = "proto3";
+
+package solana.benchmark;
+
+option go_package = "github.com/i-tozer/grpc-solana-trump/proto";
+
+// BenchmarkService provides methods to benchmark Solana RPC vs gRPC performance
+service BenchmarkService {
+  // GetAccountInfo benchmarks retrieving account information
+  rpc GetAccountInfo(AccountInfoRequest) returns (AccountInfoResponse);
+  
+  // GetTransaction benchmarks retrieving transaction information
+  rpc GetTransaction(TransactionRequest) returns (TransactionResponse);
+  
+  // GetBlock benchmarks retrieving block information
+  rpc GetBlock(BlockRequest) returns (BlockResponse);
+  
+  // StreamAccountUpdates streams account updates in real-time
+  rpc StreamAccountUpdates(AccountStreamRequest) returns (stream AccountUpdate);
+  
+  // StreamTransactions streams transactions in real-time
+  rpc StreamTransactions(TransactionStreamRequest) returns (stream TransactionUpdate);
+  
+  // StreamBlocks streams blocks in real-time
+  rpc StreamBlocks(BlockStreamRequest) returns (stream BlockUpdate);
+  
+  // RunBenchmark runs a comprehensive benchmark suite and returns results
+  rpc RunBenchmark(BenchmarkRequest) returns (BenchmarkResults);
+}
+
+// AccountInfoRequest represents a request for account information
+message AccountInfoRequest {
+  string pubkey = 1;
+  string commitment = 2;
+  bool encoding_binary = 3;
+}
+
+// AccountInfoResponse represents the response with account information
+message AccountInfoResponse {
+  string pubkey = 1;
+  bytes data = 2;
+  string owner = 3;
+  uint64 lamports = 4;
+  bool executable = 5;
+  uint64 rent_epoch = 6;
+  uint64 response_time_ms = 7;
+}
+
+// TransactionRequest represents a request for transaction information
+message TransactionRequest {
+  string signature = 1;
+  string commitment = 2;
+}
+
+// TransactionResponse represents the response with transaction information
+message TransactionResponse {
+  string signature = 1;
+  uint64 slot = 2;
+  bytes transaction = 3;
+  bool success = 4;
+  uint64 response_time_ms = 5;
+}
+
+// BlockRequest represents a request for block information
+message BlockRequest {
+  uint64 slot = 1;
+  string commitment = 2;
+}
+
+// BlockResponse represents the response with block information
+message BlockResponse {
+  uint64 slot = 1;
+  string blockhash = 2;
+  string previous_blockhash = 3;
+  uint64 parent_slot = 4;
+  repeated string transactions = 5;
+  uint64 response_time_ms = 6;
+}
+
+// AccountStreamRequest represents a request to stream account updates
+message AccountStreamRequest {
+  repeated string pubkeys = 1;
+  string commitment = 2;
+}
+
+// AccountUpdate represents a real-time account update
+message AccountUpdate {
+  string pubkey = 1;
+  bytes data = 2;
+  string owner = 3;
+  uint64 lamports = 4;
+  uint64 slot = 5;
+  uint64 timestamp = 6;
+}
+
+// TransactionStreamRequest represents a request to stream transactions
+message TransactionStreamRequest {
+  repeated string accounts = 1;
+  bool include_failed = 2;
+  string commitment = 3;
+}
+
+// TransactionUpdate represents a real-time transaction update
+message TransactionUpdate {
+  string signature = 1;
+  uint64 slot = 2;
+  bytes transaction = 3;
+  bool success = 4;
+  uint64 timestamp = 5;
+}
+
+// BlockStreamRequest represents a request to stream blocks
+message BlockStreamRequest {
+  string commitment = 1;
+}
+
+// BlockUpdate represents a real-time block update
+message BlockUpdate {
+  uint64 slot = 1;
+  string blockhash = 2;
+  string previous_blockhash = 3;
+  uint64 parent_slot = 4;
+  uint64 timestamp = 5;
+}
+
+// BenchmarkRequest represents a request to run a benchmark suite
+message BenchmarkRequest {
+  uint32 iterations = 1;
+  repeated string test_accounts = 2;
+  repeated string test_signatures = 3;
+  repeated uint64 test_slots = 4;
+  bool run_grpc_tests = 5;
+  bool run_jsonrpc_tests = 6;
+  string solana_rpc_url = 7;
+}
+
+// BenchmarkResults represents the results of a benchmark run
+message BenchmarkResults {
+  message MethodResult {
+    string method = 1;
+    uint64 avg_response_time_ms = 2;
+    uint64 min_response_time_ms = 3;
+    uint64 max_response_time_ms = 4;
+    uint32 success_count = 5;
+    uint32 failure_count = 6;
+  }
+
+  repeated MethodResult grpc_results = 1;
+  repeated MethodResult jsonrpc_results = 2;
+  double overall_speedup = 3;
+  uint32 iterations = 4;
+  uint64 total_time_ms = 5;
+}
